@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presensi Siswa</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1a56db;
+      --success: #057a55;
+      --danger: #e02424;
+      --warning: #c27803;
+    }
+    body { background: #f3f4f6; font-family: 'Segoe UI', sans-serif; }
+
+    /* TOP BAR SISTEM INFO */
+    #topbar {
+      background: linear-gradient(135deg, #1e3a5f, #1a56db);
+      color: white;
+      padding: 8px 16px;
+      font-size: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .topbar-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-right: 16px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.12);
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-green { background: #34d399; box-shadow: 0 0 6px #34d399; }
+    .dot-red { background: #f87171; }
+    .dot-yellow { background: #fbbf24; }
+
+    /* NAVBAR */
+    .navbar { background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    .nav-link { color: #374151 !important; font-weight: 500; }
+    .nav-link.active, .nav-link:hover { color: var(--primary) !important; }
+
+    /* CARDS */
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-left: 4px solid;
+      transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-card.hadir { border-color: #10b981; }
+    .stat-card.sakit { border-color: #f59e0b; }
+    .stat-card.izin { border-color: #3b82f6; }
+    .stat-card.alpha { border-color: #ef4444; }
+    .stat-number { font-size: 2rem; font-weight: 700; }
+
+    /* TABLE */
+    .table-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .table thead th { background: #f9fafb; font-weight: 600; font-size: 13px; color: #6b7280; }
+    .table td { vertical-align: middle; font-size: 14px; }
+
+    /* BADGE STATUS */
+    .badge-hadir { background: #d1fae5; color: #065f46; }
+    .badge-sakit { background: #fef3c7; color: #92400e; }
+    .badge-izin { background: #dbeafe; color: #1e40af; }
+    .badge-alpha { background: #fee2e2; color: #991b1b; }
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+    /* AVATAR */
+    .avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #e5e7eb; }
+    .avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; background: #dbeafe; color: #1d4ed8; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+
+    /* SECTION */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* LOADING */
+    .loading { text-align: center; padding: 40px; color: #6b7280; }
+
+    /* PHOTO PREVIEW */
+    .photo-preview { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; border: 2px dashed #d1d5db; }
+
+    /* TABS */
+    .nav-pills .nav-link.active { background: var(--primary); }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR: Info Sistem -->
+<div id="topbar">
+  <div class="d-flex align-items-center flex-wrap gap-1">
+    <strong><i class="bi bi-mortarboard-fill me-1"></i>PRESENSI SISWA</strong>
+    <div class="ms-3" id="topbar-info">
+      <span class="topbar-item"><i class="bi bi-arrow-repeat spin"></i> Memuat info sistem...</span>
+    </div>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container-fluid px-4">
+    <span class="navbar-brand fw-bold text-primary"><i class="bi bi-check2-circle"></i> Sistem Presensi</span>
+    <div class="navbar-nav ms-auto flex-row gap-2">
+      <a class="nav-link px-3 py-2 rounded active" href="#" onclick="showSection('dashboard')"><i class="bi bi-grid-fill"></i> Dashboard</a>
+      <a class="nav-link px-3 py-2 rounded" href="#" onclick="showSection('presensi')"><i class="bi bi-camera-fill"></i> Presensi</a>
+      <a class="nav-link px-3 py-2 rounded" href="#" onclick="showSection('siswa')"><i class="bi bi-people-fill"></i> Data Siswa</a>
+      <a class="nav-link px-3 py-2 rounded" href="#" onclick="showSection('rekap')"><i class="bi bi-bar-chart-fill"></i> Rekap</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid px-4 py-4">
+
+  <!-- ======= DASHBOARD ======= -->
+  <div id="section-dashboard" class="section active">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h4 class="fw-bold mb-1">Dashboard Presensi</h4>
+        <p class="text-muted mb-0" id="tanggal-hari-ini"></p>
+      </div>
+      <div class="d-flex gap-2">
+        <input type="date" id="dash-tanggal" class="form-control form-control-sm" style="width:160px">
+        <select id="dash-kelas" class="form-select form-select-sm" style="width:130px">
+          <option value="">Semua Kelas</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadDashboard()"><i class="bi bi-search"></i></button>
+        <button class="btn btn-success btn-sm" onclick="exportCSV()"><i class="bi bi-download"></i> Export CSV</button>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-card hadir">
+          <div class="text-muted small">Hadir</div>
+          <div class="stat-number text-success" id="count-hadir">-</div>
+          <div class="small text-muted"><i class="bi bi-check-circle"></i> siswa</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card sakit">
+          <div class="text-muted small">Sakit</div>
+          <div class="stat-number text-warning" id="count-sakit">-</div>
+          <div class="small text-muted"><i class="bi bi-heart-pulse"></i> siswa</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card izin">
+          <div class="text-muted small">Izin</div>
+          <div class="stat-number text-primary" id="count-izin">-</div>
+          <div class="small text-muted"><i class="bi bi-card-text"></i> siswa</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card alpha">
+          <div class="text-muted small">Alpha</div>
+          <div class="stat-number text-danger" id="count-alpha">-</div>
+          <div class="small text-muted"><i class="bi bi-x-circle"></i> siswa</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REKAP KELAS -->
+    <div class="table-card mb-4">
+      <div class="p-3 border-bottom fw-semibold"><i class="bi bi-building"></i> Rekap Per Kelas</div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Kelas</th><th>Wali Kelas</th><th>Total Siswa</th><th>Hadir</th><th>Sakit</th><th>Izin</th><th>Alpha</th><th>Belum</th></tr></thead>
+          <tbody id="tabel-rekap-kelas"><tr><td colspan="8" class="loading">Memuat data...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TABEL PRESENSI HARIAN -->
+    <div class="table-card">
+      <div class="p-3 border-bottom fw-semibold"><i class="bi bi-list-check"></i> Daftar Presensi Harian</div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Siswa</th><th>NIS</th><th>Kelas</th><th>Status</th><th>Jam Masuk</th><th>Keterangan</th></tr></thead>
+          <tbody id="tabel-presensi"><tr><td colspan="6" class="loading">Memuat data...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= PRESENSI ======= -->
+  <div id="section-presensi" class="section">
+    <h4 class="fw-bold mb-4"><i class="bi bi-camera-fill text-primary"></i> Input Presensi</h4>
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="table-card p-4">
+          <h6 class="fw-bold mb-3">Form Presensi</h6>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Tanggal</label>
+            <input type="date" id="presen-tanggal" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Siswa</label>
+            <select id="presen-siswa" class="form-select">
+              <option value="">-- Pilih Siswa --</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Status Kehadiran</label>
+            <div class="d-grid gap-2">
+              <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="status-radio" id="st-hadir" value="Hadir" checked>
+                <label class="btn btn-outline-success" for="st-hadir"><i class="bi bi-check-circle"></i> Hadir</label>
+                <input type="radio" class="btn-check" name="status-radio" id="st-sakit" value="Sakit">
+                <label class="btn btn-outline-warning" for="st-sakit"><i class="bi bi-heart-pulse"></i> Sakit</label>
+                <input type="radio" class="btn-check" name="status-radio" id="st-izin" value="Izin">
+                <label class="btn btn-outline-primary" for="st-izin"><i class="bi bi-card-text"></i> Izin</label>
+                <input type="radio" class="btn-check" name="status-radio" id="st-alpha" value="Alpha">
+                <label class="btn btn-outline-danger" for="st-alpha"><i class="bi bi-x-circle"></i> Alpha</label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Foto Presensi <span class="text-muted small">(disimpan di EFS)</span></label>
+            <input type="file" id="presen-foto" class="form-control" accept="image/*">
+            <div class="mt-2">
+              <img id="foto-preview" class="photo-preview d-none">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Keterangan</label>
+            <textarea id="presen-ket" class="form-control" rows="2" placeholder="Opsional..."></textarea>
+          </div>
+          <button class="btn btn-primary w-100" onclick="submitPresensi()">
+            <i class="bi bi-check2-circle"></i> Simpan Presensi
+          </button>
+          <div id="presen-alert" class="mt-3"></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="table-card p-4">
+          <h6 class="fw-bold mb-3">Presensi Massal Per Kelas</h6>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Pilih Kelas</label>
+            <select id="massal-kelas" class="form-select" onchange="loadSiswaKelas()">
+              <option value="">-- Pilih Kelas --</option>
+            </select>
+          </div>
+          <div id="massal-list"></div>
+          <button class="btn btn-success w-100 mt-3 d-none" id="btn-massal" onclick="submitMassal()">
+            <i class="bi bi-check-all"></i> Simpan Semua Presensi
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= DATA SISWA ======= -->
+  <div id="section-siswa" class="section">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h4 class="fw-bold mb-0"><i class="bi bi-people-fill text-primary"></i> Data Siswa</h4>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalSiswa" onclick="resetFormSiswa()">
+        <i class="bi bi-plus-lg"></i> Tambah Siswa
+      </button>
+    </div>
+    <div class="d-flex gap-2 mb-3">
+      <input type="text" id="search-siswa" class="form-control" style="max-width:250px" placeholder="Cari nama / NIS..." oninput="loadSiswa()">
+      <select id="filter-kelas" class="form-select" style="max-width:150px" onchange="loadSiswa()">
+        <option value="">Semua Kelas</option>
+      </select>
+    </div>
+    <div class="table-card">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Foto</th><th>NIS</th><th>Nama</th><th>Kelas</th><th>JK</th><th>Aksi</th></tr></thead>
+          <tbody id="tabel-siswa"><tr><td colspan="6" class="loading">Memuat data...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= REKAP ======= -->
+  <div id="section-rekap" class="section">
+    <h4 class="fw-bold mb-4"><i class="bi bi-bar-chart-fill text-primary"></i> Rekap Presensi Per Siswa</h4>
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <select id="rekap-siswa" class="form-select">
+          <option value="">-- Pilih Siswa --</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select id="rekap-bulan" class="form-select">
+          <option value="01">Januari</option><option value="02">Februari</option>
+          <option value="03">Maret</option><option value="04">April</option>
+          <option value="05">Mei</option><option value="06">Juni</option>
+          <option value="07">Juli</option><option value="08">Agustus</option>
+          <option value="09">September</option><option value="10">Oktober</option>
+          <option value="11">November</option><option value="12">Desember</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input type="number" id="rekap-tahun" class="form-control" value="2024" min="2020" max="2030">
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary w-100" onclick="loadRekapSiswa()"><i class="bi bi-search"></i> Tampilkan</button>
+      </div>
+    </div>
+    <div id="rekap-result"></div>
+  </div>
+
+</div><!-- end container -->
+
+<!-- MODAL TAMBAH/EDIT SISWA -->
+<div class="modal fade" id="modalSiswa" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-siswa-title">Tambah Siswa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="siswa-id">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">NIS</label>
+          <input type="text" id="siswa-nis" class="form-control" placeholder="Nomor Induk Siswa">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Nama Lengkap</label>
+          <input type="text" id="siswa-nama" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Kelas</label>
+          <select id="siswa-kelas" class="form-select"></select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Jenis Kelamin</label>
+          <select id="siswa-jk" class="form-select">
+            <option value="L">Laki-laki</option>
+            <option value="P">Perempuan</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Foto Profil <span class="text-muted small">(disimpan di S3)</span></label>
+          <input type="file" id="siswa-foto" class="form-control" accept="image/*">
+          <img id="siswa-foto-preview" class="mt-2 rounded" style="max-height:120px;display:none">
+        </div>
+        <div id="modal-alert"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-primary" onclick="saveSiswa()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API = '';
+let kelasList = [];
+let siswaList = [];
+
+// ====== INIT ======
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dash-tanggal').value = today;
+  document.getElementById('presen-tanggal').value = today;
+
+  const bulanNow = (new Date().getMonth() + 1).toString().padStart(2,'0');
+  document.getElementById('rekap-bulan').value = bulanNow;
+  document.getElementById('rekap-tahun').value = new Date().getFullYear();
+
+  const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const bln = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const d = new Date();
+  document.getElementById('tanggal-hari-ini').textContent = `${hari[d.getDay()]}, ${d.getDate()} ${bln[d.getMonth()]} ${d.getFullYear()}`;
+
+  loadSistemInfo();
+  loadKelas();
+  loadDashboard();
+
+  // Preview foto presensi
+  document.getElementById('presen-foto').addEventListener('change', function() {
+    const prev = document.getElementById('foto-preview');
+    if (this.files[0]) {
+      prev.src = URL.createObjectURL(this.files[0]);
+      prev.classList.remove('d-none');
+    }
+  });
+
+  // Preview foto siswa
+  document.getElementById('siswa-foto').addEventListener('change', function() {
+    const prev = document.getElementById('siswa-foto-preview');
+    if (this.files[0]) {
+      prev.src = URL.createObjectURL(this.files[0]);
+      prev.style.display = 'block';
+    }
+  });
+});
+
+// ====== NAVIGASI ======
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  event.target.classList.add('active');
+
+  if (name === 'siswa') loadSiswa();
+  if (name === 'rekap') loadSiswaDropdown();
+}
+
+// ====== SISTEM INFO ======
+async function loadSistemInfo() {
+  try {
+    const res = await fetch(`${API}/api/sistem/info`);
+    const data = await res.json();
+    const d = data.data;
+    const html = `
+      <span class="topbar-item"><i class="bi bi-hdd-network"></i> ${d.hostname}</span>
+      <span class="topbar-item"><i class="bi bi-wifi"></i> ${d.ip_private || 'N/A'}</span>
+      <span class="topbar-item">
+        <span class="status-dot ${d.efs.status==='connected'?'dot-green':'dot-red'}"></span>
+        EFS: ${d.efs.status}
+      </span>
+      <span class="topbar-item">
+        <span class="status-dot ${d.s3.status==='connected'?'dot-green':'dot-red'}"></span>
+        S3: ${d.s3.bucket || '-'} (${d.s3.status})
+      </span>
+      <span class="topbar-item">
+        <span class="status-dot ${d.rds.status==='connected'?'dot-green':'dot-red'}"></span>
+        RDS: ${d.rds.status}
+      </span>
+      <span class="topbar-item"><i class="bi bi-cpu"></i> RAM: ${d.memory.free} free</span>
+    `;
+    document.getElementById('topbar-info').innerHTML = html;
+  } catch (err) {
+    document.getElementById('topbar-info').innerHTML = '<span class="topbar-item text-warning"><i class="bi bi-exclamation-triangle"></i> Gagal memuat info sistem</span>';
+  }
+}
+
+// ====== KELAS ======
+async function loadKelas() {
+  try {
+    const res = await fetch(`${API}/api/kelas`);
+    const data = await res.json();
+    kelasList = data.data;
+
+    const selectors = ['dash-kelas', 'filter-kelas', 'massal-kelas'];
+    selectors.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const current = el.value;
+      el.innerHTML = '<option value="">Semua Kelas</option>';
+      kelasList.forEach(k => {
+        el.innerHTML += `<option value="${k.id}">${k.nama_kelas}</option>`;
+      });
+      el.value = current;
+    });
+
+    // Modal kelas
+    const sk = document.getElementById('siswa-kelas');
+    sk.innerHTML = '';
+    kelasList.forEach(k => {
+      sk.innerHTML += `<option value="${k.id}">${k.nama_kelas}</option>`;
+    });
+  } catch (err) { console.error('loadKelas:', err); }
+}
+
+// ====== DASHBOARD ======
+async function loadDashboard() {
+  const tanggal = document.getElementById('dash-tanggal').value;
+  const kelasId = document.getElementById('dash-kelas').value;
+
+  // Load rekap kelas
+  try {
+    const res = await fetch(`${API}/api/presensi/rekap/kelas?tanggal=${tanggal}`);
+    const data = await res.json();
+    let html = '';
+    let totalH=0, totalS=0, totalI=0, totalA=0;
+    data.data.forEach(item => {
+      if (kelasId && item.kelas.id != kelasId) return;
+      totalH += item.rekap.Hadir;
+      totalS += item.rekap.Sakit;
+      totalI += item.rekap.Izin;
+      totalA += item.rekap.Alpha;
+      html += `<tr>
+        <td><strong>${item.kelas.nama_kelas}</strong></td>
+        <td class="text-muted">${item.kelas.wali_kelas || '-'}</td>
+        <td>${item.total_siswa}</td>
+        <td><span class="badge bg-success">${item.rekap.Hadir}</span></td>
+        <td><span class="badge bg-warning text-dark">${item.rekap.Sakit}</span></td>
+        <td><span class="badge bg-primary">${item.rekap.Izin}</span></td>
+        <td><span class="badge bg-danger">${item.rekap.Alpha}</span></td>
+        <td><span class="badge bg-secondary">${item.belum_presensi}</span></td>
+      </tr>`;
+    });
+    document.getElementById('tabel-rekap-kelas').innerHTML = html || '<tr><td colspan="8" class="text-center text-muted">Belum ada data</td></tr>';
+    document.getElementById('count-hadir').textContent = totalH;
+    document.getElementById('count-sakit').textContent = totalS;
+    document.getElementById('count-izin').textContent = totalI;
+    document.getElementById('count-alpha').textContent = totalA;
+  } catch (err) { console.error(err); }
+
+  // Load presensi harian
+  try {
+    let url = `${API}/api/presensi?tanggal=${tanggal}`;
+    if (kelasId) url += `&kelas_id=${kelasId}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    let html = '';
+    data.data.forEach(p => {
+      const badgeClass = { Hadir:'hadir', Sakit:'sakit', Izin:'izin', Alpha:'alpha' }[p.status] || 'hadir';
+      html += `<tr>
+        <td>${avatarHtml(p.foto_profil_url, p.nama)}</td>
+        <td>${p.nis}</td>
+        <td>${p.nama} <small class="text-muted d-block">${p.nama_kelas}</small></td>
+        <td><span class="status-badge badge-${badgeClass}">${p.status}</span></td>
+        <td>${p.waktu_checkin || '-'}</td>
+        <td>${p.keterangan || '-'}</td>
+      </tr>`;
+    });
+    document.getElementById('tabel-presensi').innerHTML = html || '<tr><td colspan="6" class="text-center text-muted py-4">Belum ada presensi untuk tanggal ini</td></tr>';
+  } catch (err) { console.error(err); }
+}
+
+// ====== SISWA ======
+async function loadSiswa() {
+  const search = document.getElementById('search-siswa').value;
+  const kelasId = document.getElementById('filter-kelas').value;
+  let url = `${API}/api/siswa?`;
+  if (search) url += `search=${search}&`;
+  if (kelasId) url += `kelas_id=${kelasId}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    siswaList = data.data;
+    let html = '';
+    siswaList.forEach(s => {
+      html += `<tr>
+        <td>${avatarHtml(s.foto_profil_url, s.nama)}</td>
+        <td>${s.nis}</td>
+        <td><strong>${s.nama}</strong></td>
+        <td><span class="badge bg-light text-dark border">${s.nama_kelas || '-'}</span></td>
+        <td>${s.jenis_kelamin === 'L' ? '👦 L' : '👧 P'}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary me-1" onclick="editSiswa(${s.id})"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteSiswa(${s.id}, '${s.nama}')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>`;
+    });
+    document.getElementById('tabel-siswa').innerHTML = html || '<tr><td colspan="6" class="text-center text-muted py-4">Tidak ada data siswa</td></tr>';
+  } catch (err) { console.error(err); }
+}
+
+async function loadSiswaDropdown() {
+  try {
+    const res = await fetch(`${API}/api/siswa`);
+    const data = await res.json();
+    const sel = document.getElementById('presen-siswa');
+    const sel2 = document.getElementById('rekap-siswa');
+    const makeOpts = (data) => data.map(s => `<option value="${s.id}">${s.nama} (${s.nama_kelas})</option>`).join('');
+    sel.innerHTML = '<option value="">-- Pilih Siswa --</option>' + makeOpts(data.data);
+    sel2.innerHTML = '<option value="">-- Pilih Siswa --</option>' + makeOpts(data.data);
+  } catch (err) { console.error(err); }
+}
+
+function resetFormSiswa() {
+  document.getElementById('siswa-id').value = '';
+  document.getElementById('siswa-nis').value = '';
+  document.getElementById('siswa-nama').value = '';
+  document.getElementById('siswa-foto').value = '';
+  document.getElementById('siswa-foto-preview').style.display = 'none';
+  document.getElementById('modal-alert').innerHTML = '';
+  document.getElementById('modal-siswa-title').textContent = 'Tambah Siswa';
+}
+
+async function editSiswa(id) {
+  try {
+    const res = await fetch(`${API}/api/siswa/${id}`);
+    const data = await res.json();
+    const s = data.data;
+    document.getElementById('siswa-id').value = s.id;
+    document.getElementById('siswa-nis').value = s.nis;
+    document.getElementById('siswa-nama').value = s.nama;
+    document.getElementById('siswa-kelas').value = s.kelas_id;
+    document.getElementById('siswa-jk').value = s.jenis_kelamin;
+    document.getElementById('modal-siswa-title').textContent = 'Edit Siswa';
+    if (s.foto_profil_url) {
+      const prev = document.getElementById('siswa-foto-preview');
+      prev.src = s.foto_profil_url;
+      prev.style.display = 'block';
+    }
+    new bootstrap.Modal(document.getElementById('modalSiswa')).show();
+  } catch (err) { alert('Gagal memuat data siswa'); }
+}
+
+async function saveSiswa() {
+  const id = document.getElementById('siswa-id').value;
+  const formData = new FormData();
+  formData.append('nis', document.getElementById('siswa-nis').value);
+  formData.append('nama', document.getElementById('siswa-nama').value);
+  formData.append('kelas_id', document.getElementById('siswa-kelas').value);
+  formData.append('jenis_kelamin', document.getElementById('siswa-jk').value);
+  const foto = document.getElementById('siswa-foto').files[0];
+  if (foto) formData.append('foto_profil', foto);
+
+  try {
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API}/api/siswa/${id}` : `${API}/api/siswa`;
+    const res = await fetch(url, { method, body: formData });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('modal-alert').innerHTML = `<div class="alert alert-success py-2">${data.message}</div>`;
+      setTimeout(() => { bootstrap.Modal.getInstance(document.getElementById('modalSiswa')).hide(); loadSiswa(); }, 1000);
+    } else {
+      document.getElementById('modal-alert').innerHTML = `<div class="alert alert-danger py-2">${data.message}</div>`;
+    }
+  } catch (err) {
+    document.getElementById('modal-alert').innerHTML = `<div class="alert alert-danger py-2">Gagal menyimpan data</div>`;
+  }
+}
+
+async function deleteSiswa(id, nama) {
+  if (!confirm(`Hapus siswa "${nama}"? Data presensinya juga akan dihapus.`)) return;
+  try {
+    const res = await fetch(`${API}/api/siswa/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) loadSiswa();
+    else alert(data.message);
+  } catch (err) { alert('Gagal menghapus siswa'); }
+}
+
+// ====== PRESENSI ======
+async function submitPresensi() {
+  const siswaId = document.getElementById('presen-siswa').value;
+  if (!siswaId) { alert('Pilih siswa terlebih dahulu!'); return; }
+
+  const formData = new FormData();
+  formData.append('siswa_id', siswaId);
+  formData.append('tanggal', document.getElementById('presen-tanggal').value);
+  formData.append('status', document.querySelector('input[name="status-radio"]:checked').value);
+  formData.append('keterangan', document.getElementById('presen-ket').value);
+  const foto = document.getElementById('presen-foto').files[0];
+  if (foto) formData.append('foto_presensi', foto);
+
+  try {
+    const res = await fetch(`${API}/api/presensi`, { method: 'POST', body: formData });
+    const data = await res.json();
+    const alertDiv = document.getElementById('presen-alert');
+    if (data.success) {
+      alertDiv.innerHTML = `<div class="alert alert-success"><i class="bi bi-check-circle"></i> ${data.message}</div>`;
+      document.getElementById('presen-ket').value = '';
+      document.getElementById('presen-foto').value = '';
+      document.getElementById('foto-preview').classList.add('d-none');
+    } else {
+      alertDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+    }
+    setTimeout(() => alertDiv.innerHTML = '', 3000);
+  } catch (err) {
+    document.getElementById('presen-alert').innerHTML = `<div class="alert alert-danger">Gagal menyimpan presensi</div>`;
+  }
+}
+
+async function loadSiswaKelas() {
+  const kelasId = document.getElementById('massal-kelas').value;
+  if (!kelasId) { document.getElementById('massal-list').innerHTML = ''; return; }
+
+  try {
+    const res = await fetch(`${API}/api/siswa?kelas_id=${kelasId}`);
+    const data = await res.json();
+    let html = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Nama</th><th>NIS</th><th>Status</th></tr></thead><tbody>';
+    data.data.forEach(s => {
+      html += `<tr>
+        <td>${s.nama}</td>
+        <td>${s.nis}</td>
+        <td>
+          <select class="form-select form-select-sm massal-status" data-id="${s.id}">
+            <option value="Hadir">Hadir</option>
+            <option value="Sakit">Sakit</option>
+            <option value="Izin">Izin</option>
+            <option value="Alpha">Alpha</option>
+          </select>
+        </td>
+      </tr>`;
+    });
+    html += '</tbody></table></div>';
+    document.getElementById('massal-list').innerHTML = html;
+    document.getElementById('btn-massal').classList.remove('d-none');
+  } catch (err) { console.error(err); }
+}
+
+async function submitMassal() {
+  const tanggal = document.getElementById('presen-tanggal').value;
+  const items = document.querySelectorAll('.massal-status');
+  let berhasil = 0;
+
+  for (const item of items) {
+    const fd = new FormData();
+    fd.append('siswa_id', item.dataset.id);
+    fd.append('tanggal', tanggal);
+    fd.append('status', item.value);
+    try {
+      await fetch(`${API}/api/presensi`, { method: 'POST', body: fd });
+      berhasil++;
+    } catch (e) {}
+  }
+
+  alert(`${berhasil} dari ${items.length} presensi berhasil disimpan!`);
+  loadDashboard();
+}
+
+// ====== REKAP SISWA ======
+async function loadRekapSiswa() {
+  const siswaId = document.getElementById('rekap-siswa').value;
+  if (!siswaId) { alert('Pilih siswa terlebih dahulu!'); return; }
+  const bulan = document.getElementById('rekap-bulan').value;
+  const tahun = document.getElementById('rekap-tahun').value;
+
+  try {
+    const res = await fetch(`${API}/api/presensi/rekap/siswa/${siswaId}?bulan=${bulan}&tahun=${tahun}`);
+    const data = await res.json();
+    const d = data.data;
+    const s = d.siswa;
+    const r = d.rekap;
+
+    let html = `
+      <div class="table-card p-4 mb-4">
+        <div class="d-flex align-items-center gap-3 mb-4">
+          ${avatarHtml(s.foto_profil_url, s.nama, 60)}
+          <div>
+            <h5 class="mb-0 fw-bold">${s.nama}</h5>
+            <div class="text-muted">NIS: ${s.nis} | Kelas: ${s.nama_kelas}</div>
+            <div class="text-muted small">Periode: ${d.periode}</div>
+          </div>
+        </div>
+        <div class="row g-3 mb-4">
+          <div class="col-3"><div class="text-center p-3 rounded" style="background:#d1fae5">
+            <div class="fs-3 fw-bold text-success">${r.Hadir}</div><div class="small text-success">Hadir</div>
+          </div></div>
+          <div class="col-3"><div class="text-center p-3 rounded" style="background:#fef3c7">
+            <div class="fs-3 fw-bold text-warning">${r.Sakit}</div><div class="small text-warning">Sakit</div>
+          </div></div>
+          <div class="col-3"><div class="text-center p-3 rounded" style="background:#dbeafe">
+            <div class="fs-3 fw-bold text-primary">${r.Izin}</div><div class="small text-primary">Izin</div>
+          </div></div>
+          <div class="col-3"><div class="text-center p-3 rounded" style="background:#fee2e2">
+            <div class="fs-3 fw-bold text-danger">${r.Alpha}</div><div class="small text-danger">Alpha</div>
+          </div></div>
+        </div>
+        <table class="table table-sm">
+          <thead><tr><th>Tanggal</th><th>Status</th><th>Jam Masuk</th><th>Keterangan</th></tr></thead>
+          <tbody>`;
+
+    d.detail.forEach(p => {
+      const bc = { Hadir:'hadir', Sakit:'sakit', Izin:'izin', Alpha:'alpha' }[p.status];
+      html += `<tr>
+        <td>${p.tanggal}</td>
+        <td><span class="status-badge badge-${bc}">${p.status}</span></td>
+        <td>${p.waktu_checkin || '-'}</td>
+        <td>${p.keterangan || '-'}</td>
+      </tr>`;
+    });
+
+    html += '</tbody></table></div>';
+    document.getElementById('rekap-result').innerHTML = html;
+  } catch (err) {
+    document.getElementById('rekap-result').innerHTML = '<div class="alert alert-danger">Gagal memuat rekap</div>';
+  }
+}
+
+// ====== EXPORT CSV ======
+function exportCSV() {
+  const tanggal = document.getElementById('dash-tanggal').value;
+  const kelasId = document.getElementById('dash-kelas').value;
+  let url = `${API}/api/presensi/export/csv?tanggal=${tanggal}`;
+  if (kelasId) url += `&kelas_id=${kelasId}`;
+  window.open(url, '_blank');
+}
+
+// ====== HELPERS ======
+function avatarHtml(url, nama, size = 40) {
+  if (url) {
+    return `<img src="${url}" class="avatar" style="width:${size}px;height:${size}px" onerror="this.style.display='none'">`;
+  }
+  const inisial = nama ? nama.charAt(0).toUpperCase() : '?';
+  return `<div class="avatar-placeholder" style="width:${size}px;height:${size}px;font-size:${size*0.35}px">${inisial}</div>`;
+}
+
+// Load dropdown siswa saat section presensi & rekap dibuka
+document.addEventListener('DOMContentLoaded', loadSiswaDropdown);
+</script>
+</body>
+</html>
