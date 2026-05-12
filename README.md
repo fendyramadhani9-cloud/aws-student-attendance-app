@@ -57,9 +57,14 @@ presensi-app/
 ### 2. Clone & Install
 ```bash
 # Upload ke EC2
-scp -r presensi-app/ ec2-user@<EC2-IP>:~/
-cd ~/presensi-app
+apt update -y
+apt install nodejs npm git -y
+
+mkdir /opt/presensi-app
+cd /opt/presensi-app
+git clone https://github.com/paknux/presensi-app .
 npm install
+npm install -g pm2
 ```
 
 ### 3. Konfigurasi .env
@@ -86,23 +91,17 @@ EFS_MOUNT_PATH=/mnt/efs/presensi
 PORT=3000
 ```
 
-### 4. Setup Database
-```bash
-mysql -h <RDS_ENDPOINT> -u admin -pP4ssw0rd < db/schema.sql
-```
 
-### 5. Jalankan Aplikasi
-```bash
-# Development
-npm run dev
 
-# Production
-npm start
+### 4. Jalankan Aplikasi
+```bash
+pm2 start server.js --name presensi-app
+pm2 save
 ```
 
 ### 6. Akses Aplikasi
 ```
-http://<EC2-PUBLIC-IP>:3000
+http://ippublic:3000
 ```
 
 ## REST API Endpoints
