@@ -1,6 +1,5 @@
 const mysql2 = require('mysql2/promise');
 require('dotenv').config();
-
 const DB_NAME = process.env.DB_NAME || 'presensi_db';
 
 // Pool tanpa database dulu (untuk buat database jika belum ada)
@@ -11,7 +10,10 @@ const poolInit = mysql2.createPool({
   password: process.env.DB_PASS,
   waitForConnections: true,
   connectionLimit: 3,
-  connectTimeout: 10000
+  connectTimeout: 10000,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // Pool utama dengan database
@@ -24,7 +26,10 @@ const pool = mysql2.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  connectTimeout: 10000
+  connectTimeout: 10000,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 async function initDatabase() {
@@ -38,7 +43,6 @@ async function initDatabase() {
 
     // 2. Buat tabel-tabel jika belum ada
     const db = await pool.getConnection();
-
     await db.query(`
       CREATE TABLE IF NOT EXISTS kelas (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -47,7 +51,6 @@ async function initDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-
     await db.query(`
       CREATE TABLE IF NOT EXISTS siswa (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -62,7 +65,6 @@ async function initDatabase() {
         FOREIGN KEY (kelas_id) REFERENCES kelas(id)
       )
     `);
-
     await db.query(`
       CREATE TABLE IF NOT EXISTS presensi (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -77,7 +79,6 @@ async function initDatabase() {
         UNIQUE KEY unique_presensi (siswa_id, tanggal)
       )
     `);
-
     console.log('✅ Tabel kelas, siswa, presensi siap');
 
     // 3. Insert data kelas awal jika tabel kelas masih kosong
@@ -93,7 +94,6 @@ async function initDatabase() {
       `);
       console.log('✅ Data kelas awal berhasil ditambahkan');
     }
-
     db.release();
     console.log('🚀 Inisialisasi database selesai');
   } catch (err) {
