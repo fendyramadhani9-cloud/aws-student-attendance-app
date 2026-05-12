@@ -54,9 +54,9 @@ presensi-app/
 - EFS sudah di-mount ke EC2 di path `/mnt/efs/presensi`
 - S3 bucket sudah dibuat
 
-### 2. Clone & Install
+### 2. Deploy ke instance EC2
+
 ```bash
-# Upload ke EC2
 apt update -y
 apt install nodejs npm git -y
 
