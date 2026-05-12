@@ -88,7 +88,7 @@ AWS_REGION=us-east-1
 EFS_MOUNT_PATH=/mnt/efs/presensi
 
 # App
-PORT=80
+PORT=3000
 ```
 
 
@@ -101,7 +101,7 @@ pm2 save
 
 ### 6. Akses Aplikasi
 ```
-http://ippublic
+http://ippublic:3000
 ```
 
 ## REST API Endpoints
