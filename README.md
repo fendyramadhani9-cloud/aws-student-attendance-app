@@ -71,7 +71,7 @@ npm install -g pm2
 ```bash
 nano .env
 ```
-Edit nilai berikut:
+Edit dan sesuaikan nilai berikut:
 ```
 # Database RDS MySQL
 DB_HOST=your-rds-endpoint.rds.amazonaws.com
