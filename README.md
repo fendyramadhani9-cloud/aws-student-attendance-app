@@ -1,3 +1,4 @@
+
 # Aplikasi Presensi Siswa
 
 Aplikasi presensi siswa berbasis Node.js dengan integrasi AWS (EFS, S3, RDS MariaDB).
@@ -14,6 +15,15 @@ Node.js Express (REST API)
      └── EFS        → Foto presensi harian
 ```
 
+## Architecture
+
+<p align="center">
+  <img src="assets/architecture.jpeg" alt="AWS Architecture" width="900">
+</p>
+
+<p align="center">
+  <em>Figure 1. AWS deployment architecture for the Student Attendance Application.</em>
+</p>
 ## Fitur
 
 -  Dashboard presensi harian dengan statistik
@@ -159,3 +169,19 @@ Foto presensi disimpan dengan struktur:
     └── 2024-01-16/
         └── uuid3.jpg
 ```
+## Learning Project
+
+This repository was developed as part of a Cloud Infrastructure learning assignment at SMKN 1 Banyumas.
+
+The application source code and project requirements were provided by the instructor as learning materials.
+
+My contribution focused on the infrastructure implementation, including:
+
+- Deploying the application on Amazon EC2
+- Configuring AWS networking (VPC, Subnets, Route Tables, Internet Gateway, NAT)
+- Configuring Nginx Load Balancer / Reverse Proxy
+- Setting up MySQL and Amazon S3 integration
+- Managing environment variables and deployment automation
+- Creating the project documentation and architecture diagrams
+
+This repository is maintained as part of my learning portfolio to demonstrate cloud infrastructure deployment and system administration skills.
