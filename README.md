@@ -1,4 +1,4 @@
-# 🎓 Aplikasi Presensi Siswa
+# Aplikasi Presensi Siswa
 
 Aplikasi presensi siswa berbasis Node.js dengan integrasi AWS (EFS, S3, RDS MariaDB).
 
@@ -16,14 +16,14 @@ Node.js Express (REST API)
 
 ## Fitur
 
-- ✅ Dashboard presensi harian dengan statistik
-- ✅ Input presensi (Hadir/Sakit/Izin/Alpha)
-- ✅ Presensi massal per kelas
-- ✅ Foto presensi tersimpan di EFS
-- ✅ Foto profil siswa tersimpan di S3 (via IAM Role)
-- ✅ Rekap presensi per siswa & per kelas
-- ✅ Export CSV
-- ✅ Info sistem di top bar (IP, EFS, S3, RDS status)
+-  Dashboard presensi harian dengan statistik
+-  Input presensi (Hadir/Sakit/Izin/Alpha)
+-  Presensi massal per kelas
+-  Foto presensi tersimpan di EFS
+-  Foto profil siswa tersimpan di S3 (via IAM Role)
+-  Rekap presensi per siswa & per kelas
+-  Export CSV
+-  Info sistem di top bar (IP, EFS, S3, RDS status)
 
 ## Struktur File
 
